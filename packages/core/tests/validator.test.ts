@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vite-plus/test";
-import { parseWorkspace, RULES, validate } from "../src/index.ts";
+import { parseWorkspace, progress, RULES, validate } from "../src/index.ts";
 import { doc, farmers, kitchens, run } from "./helpers.ts";
 
 describe("errors", () => {
@@ -138,6 +138,10 @@ describe("canvases", () => {
     );
     expect(missing.map((d) => [d.step, d.message])).toEqual([
       [
+        "E2",
+        "model.pdt42.md (E2 Scan the ecosystem) shows no Ecosystem Scan — add a `:::canvas` block with `canvas: ecosystem-scan`",
+      ],
+      [
         "D1",
         "model.pdt42.md (D1 Map the ecosystem) shows no Ecosystem Canvas — add a `:::canvas` block with `canvas: ecosystem`",
       ],
@@ -154,6 +158,7 @@ describe("canvases", () => {
         transaction,
         board("r"),
         ":::canvas\nid: cv-eco\ncanvas: ecosystem\n:::",
+        ":::canvas\nid: cv-scan\ncanvas: ecosystem-scan\n:::",
       ),
     ).codes;
     expect(placed).not.toContain("W011");
@@ -165,5 +170,48 @@ describe("canvases", () => {
       { file: "elsewhere.pdt42.md", content: doc(":::canvas\nid: cv-eco\ncanvas: ecosystem\n:::") },
     ]);
     expect(validate(ws).some((d) => d.code === "W011" && d.step === "D1")).toBe(true);
+  });
+});
+
+describe("home chapters (EG03)", () => {
+  const E2 = "1-exploration/e2-scan.pdt42.md";
+  const D1 = "2-design/d1-ecosystem.pdt42.md";
+  const platform = ":::platform\nid: platform\ntitle: P\nowners: e-farmers\n:::";
+  const workspace = (files: Record<string, string[]>) =>
+    parseWorkspace(
+      Object.entries(files).map(([file, blocks]) => ({ file, content: doc(...blocks) })),
+    );
+  const eg03 = (files: Record<string, string[]>) =>
+    validate(workspace(files)).filter((d) => d.code === "EG03");
+
+  test("an entity's home is the Ecosystem Scan (E2)", () => {
+    expect(eg03({ [E2]: [farmers], [D1]: [platform] })).toEqual([]);
+  });
+
+  test("an entity written in D1 is an error naming its home chapter", () => {
+    const [d] = eg03({ [D1]: [farmers, platform] });
+    expect(d).toMatchObject({ file: D1, severity: "error" });
+    expect(d!.message).toBe(
+      `entity 'e-farmers' belongs in its home chapter ${E2} (E2 Scan the ecosystem), but is documented in ${D1} — move it there: an entity found in a later step is still written down in its home chapter`,
+    );
+  });
+
+  test("files outside the chapter convention may hold any element", () => {
+    expect(eg03({ "model.pdt42.md": [farmers, platform] })).toEqual([]);
+  });
+
+  test("D1 counts as started by the roles it gives entities in their home chapter", () => {
+    const counts = (files: Record<string, string[]>) => {
+      const ws = workspace(files);
+      return Object.fromEntries(
+        progress(ws, validate(ws))
+          .filter((s) => ["E2", "D1", "D2"].includes(s.step.id))
+          .map((s) => [s.step.id, s.count]),
+      );
+    };
+    const unroled = ":::entity\nid: e-x\ntitle: X\nlayer: long-tail\n:::";
+    expect(counts({ [E2]: [unroled] })).toEqual({ E2: 1, D1: 0, D2: 0 });
+    expect(counts({ [E2]: [farmers, unroled] })).toEqual({ E2: 2, D1: 1, D2: 0 });
+    expect(counts({ [E2]: [farmers], [D1]: [platform] })).toEqual({ E2: 1, D1: 2, D2: 0 });
   });
 });

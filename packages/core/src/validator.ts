@@ -7,6 +7,7 @@ import {
   BLOCK_TYPES,
   blockMeta,
   crossReferences,
+  isBlockType,
   PEER_ROLES,
   type BlockType,
 } from "./schemas.ts";
@@ -883,7 +884,7 @@ function chapterOfFile(path: string): number | null {
   return index < 0 ? null : index + 1;
 }
 
-/** The chapter of each block type: the file of the step that introduces it (EG03). */
+/** The chapter of each block type: the file of its home step, the step that creates it (EG03). */
 const CHAPTERS = Object.fromEntries(
   BLOCK_TYPES.map((kind) => {
     const step = STEPS.find((s) => s.id === blockMeta(kind).step);
@@ -902,6 +903,20 @@ function modelView(ws: Workspace) {
   };
 }
 
+/**
+ * EG03 in pdt42's words: the generic finding names chapter numbers; say which chapter is the
+ * kind's home and that a block found in a later step still belongs there.
+ */
+function homeChapterMessage(message: string, file: string): string {
+  const [, kind, id] = /^(\S+) '(.+)' belongs in chapter \d+, but/.exec(message) ?? [];
+  if (!kind || !isBlockType(kind)) return message;
+  const home = STEPS.find((s) => s.id === blockMeta(kind).step)!;
+  return `${kind} '${id}' belongs in its home chapter ${home.file} (${home.id} ${home.title}), but is documented in ${file} — move it there: ${/^[aeiou]/.test(kind) ? "an" : "a"} ${kind} found in a later step is still written down in its home chapter`;
+}
+
+const HOME_CHAPTER_RATIONALE =
+  "Every block type has one home chapter: the chapter of the step of the method that creates it. Later steps fill blocks in or reference them, and a block found in a later step (a new entity while mapping the ecosystem) is still written down in its home chapter — so every element of a kind is found in one place.";
+
 const GENERIC_RULES: Rule[] = genericRules({
   chapters: CHAPTERS,
   chapterOfFile,
@@ -913,12 +928,14 @@ const GENERIC_RULES: Rule[] = genericRules({
     code: generic.meta.code,
     severity: generic.meta.severity,
     title: generic.meta.docs.description,
-    rationale: generic.meta.docs.rationale,
+    rationale: generic.meta.code === "EG03" ? HOME_CHAPTER_RATIONALE : generic.meta.docs.rationale,
   },
   check: (ws) =>
-    generic
-      .check(modelView(ws), undefined)
-      .map(({ message, file, line }) => ({ message, file, line })),
+    generic.check(modelView(ws), undefined).map(({ message, file, line }) => ({
+      message: generic.meta.code === "EG03" ? homeChapterMessage(message, file) : message,
+      file,
+      line,
+    })),
 }));
 
 /** Every rule: the generic ones first (EGxx, WGxx), then pdt42's own. */
@@ -970,20 +987,25 @@ function chapterCanvasFindings(ws: Workspace): Finding[] {
   for (const step of STEPS) {
     if (!step.canvas) continue;
     const canvas = canvasById(step.canvas)!;
-    const own = step.blocks.length
-      ? ws.elements.filter((e) => (step.blocks as string[]).includes(e.kind))
-      : ws.elements.filter((e) =>
-          (step.enriches ?? []).some(
-            ({ type, fields }) =>
-              e.kind === type &&
-              fields.some((f) => {
-                const v = fieldValue(e, f);
-                return Array.isArray(v) ? v.length > 0 : v !== undefined && v !== "";
-              }),
-          ),
-        );
+    // The step's elements: those it created, then those it filled in (D1 roles, D2 portraits).
+    // The canvas belongs with the created ones; a step that created none yet shows it next to
+    // the elements it filled in.
+    const created = ws.elements.filter((e) => (step.blocks as string[]).includes(e.kind));
+    const filled = ws.elements.filter(
+      (e) =>
+        !created.includes(e) &&
+        (step.enriches ?? []).some(
+          ({ type, fields }) =>
+            e.kind === type &&
+            fields.some((f) => {
+              const v = fieldValue(e, f);
+              return Array.isArray(v) ? v.length > 0 : v !== undefined && v !== "";
+            }),
+        ),
+    );
+    const own = [...created, ...filled];
     if (!own.length) continue;
-    const chapterFiles = new Set(own.map((e) => e.loc.file));
+    const chapterFiles = new Set((created.length ? created : filled).map((e) => e.loc.file));
     const placed = ws.canvases.filter(
       (v) => v.canvas === canvas.id && chapterFiles.has(v.loc.file),
     );

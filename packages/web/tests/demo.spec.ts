@@ -133,7 +133,7 @@ test("screenshots for the site", async ({ page }) => {
     await shot("01-chapter");
     await open("2-design/d1-ecosystem.pdt42.md:cv-ecosystem");
     await shot("02-ecosystem-canvas");
-    await open("2-design/d1-ecosystem.pdt42.md:el-e-farmers");
+    await open("1-exploration/e2-scan.pdt42.md:el-e-farmers");
     await shot("03-model-box");
     await open(`${D5}:cv-board-restaurant`);
     await shot("04-transactions-board");

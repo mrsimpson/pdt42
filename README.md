@@ -92,11 +92,17 @@ of: r-farmer-restaurant
 
 ## The method, in the model
 
-| Phase                                              | Steps                                                                                                                                 | Blocks                                                                                                                              |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Exploration — _is there an opportunity?_           | E1 arenas · E2 scan · E3 assets & moats · E4 focus · E5 value chain · E6 platform plays · E7 brief                                    | `ecosystem` `arena` `job` `asset` `moat` `component` `play` `scenario` `brief`                                                      |
-| Strategy Design — _how do we design the platform?_ | D1 ecosystem · D2 portraits · D3 motivations · D4 core relationships · D5 transactions · D6 learning engine · D7 experiences · D8 MVP | `platform` `entity` `motivation` `relationship` `channel` `transaction` `learning-engine` `service` `experience` `mvp` `assumption` |
-| Growth — _how do we launch and grow it?_           | G1 strategy model · G2 network properties · G3 flywheels · G4 liquidity · G5 growth loops                                             | `value-proposition` `network` `flywheel` `liquidity` `growth-loop`                                                                  |
+| Phase                                              | Steps                                                                                                                                 | Blocks                                                                                                                     |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Exploration — _is there an opportunity?_           | E1 arenas · E2 scan · E3 assets & moats · E4 focus · E5 value chain · E6 platform plays · E7 brief                                    | `ecosystem` `arena` `job` `entity` `asset` `moat` `component` `play` `scenario` `brief`                                    |
+| Strategy Design — _how do we design the platform?_ | D1 ecosystem · D2 portraits · D3 motivations · D4 core relationships · D5 transactions · D6 learning engine · D7 experiences · D8 MVP | `platform` `motivation` `relationship` `channel` `transaction` `learning-engine` `service` `experience` `mvp` `assumption` |
+| Growth — _how do we launch and grow it?_           | G1 strategy model · G2 network properties · G3 flywheels · G4 liquidity · G5 growth loops                                             | `value-proposition` `network` `flywheel` `liquidity` `growth-loop`                                                         |
+
+Every block type has one home chapter: the chapter of the step that creates it. Later steps fill
+blocks in there or reference them, and a block found in a later step is still written in its home
+chapter. Entities live in the Ecosystem Scan (E2): D1 gives them their role and D2 their portrait,
+in place — also when a design skips exploration and starts at D1. `pdt42 guide step <id>` and
+`pdt42 explain <type>` name the home chapters.
 
 - [`docs/methodology.md`](docs/methodology.md) summarises the PDT as this project reads it.
 - [`docs/meta-model.md`](docs/meta-model.md) is generated from the schemas: every block, attribute
@@ -107,10 +113,10 @@ of: r-farmer-restaurant
 `pdt42 validate` reports three levels, each rule with its rationale (`pdt42 rules`):
 
 - **Errors: the model is broken.** Duplicate ids (EG01), blocks that cannot be built — unknown
-  blocks, missing or invalid attributes, unreadable lines, unclosed blocks (EG02) — blocks of a
-  step outside the step's chapter file (EG03) or outside any section (EG04), references that
-  don't resolve (E002: references are mostly optional, but a reference that is set must point to
-  an existing element of the right type), more than one platform (E005), invalid canvases (E006).
+  blocks, missing or invalid attributes, unreadable lines, unclosed blocks (EG02) — blocks
+  outside their home chapter (EG03) or outside any section (EG04), references that don't resolve
+  (E002: references are mostly optional, but a reference that is set must point to an existing
+  element of the right type), more than one platform (E005), invalid canvases (E006).
 - **Warnings: the model contradicts the method.** A transaction outside its relationship, an
   experience whose steps involve roles it doesn't list, a learning engine for a stakeholder, an MVP
   without assumptions, a chapter without its canvas — and the conventions every \*42 language

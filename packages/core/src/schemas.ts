@@ -269,7 +269,11 @@ export type Phase = "exploration" | "design" | "growth";
 export interface BlockMeta {
   /** What the block is, in one sentence. */
   description: string;
-  /** The methodology step that introduces the block (see methodology.ts). */
+  /**
+   * The block's home step: the step of the method that creates it (see methodology.ts). Its
+   * chapter is the one place where blocks of this type are written — also those found in a
+   * later step, which only fills them in or references them.
+   */
   step: string;
   /** At most one per workspace. */
   singleton?: boolean;
@@ -422,7 +426,7 @@ export const EntitySchema = block(
   {
     description:
       "An entity-role: a cluster of similar ecosystem actors, with its platform role and its portrait.",
-    step: "D1",
+    step: "E2",
     tips: [
       "Cluster similar entities under one role name — losing detail lets more of the ecosystem take part.",
       "Keep at most five roles in the peer spectrum (peer consumers, peer producers, partners).",
@@ -432,7 +436,7 @@ export const EntitySchema = block(
     ],
     idPrefix: "e",
     example:
-      "id: e-farmers\ntitle: Small-scale farmers\nrole: peer-producer\ntype: family businesses\nclusters:\n  - Vegetable growers\n  - Orchards\npressures:\n  - Volatile demand\nconvenience-gains:\n  - Selling without driving to town",
+      "id: e-farmers\ntitle: Small-scale farmers\nlayer: long-tail\nrole: peer-producer\ntype: family businesses\nclusters:\n  - Vegetable growers\n  - Orchards\npressures:\n  - Volatile demand\nconvenience-gains:\n  - Selling without driving to town",
   },
 );
 

@@ -155,3 +155,10 @@ The canvases are views over one ecosystem model. The same entity-role appears as
 
 That is exactly the kind of consistency a text-based, validated model can guarantee and a wall of
 post-its cannot. The meta-model makes these links explicit; the canvases render them.
+
+Each element is written once, in the home chapter of its type: the chapter of the step where the
+method creates it. Later steps fill it in there or reference it, and an element discovered in a
+later step is still written in its home chapter. The Ecosystem Scan (E2) maps "all the entities
+involved and how these lay down on a layered market view", so entities live in E2's chapter; the
+Ecosystem Canvas (D1) gives them their platform role and the portrait (D2) their context, goals and
+gains, in place. A design that skips exploration still writes its entities there.

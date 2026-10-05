@@ -13,6 +13,7 @@ flowchart LR
     ecosystem["ecosystem"]
     arena["arena"]
     job["job"]
+    entity["entity"]
     asset["asset"]
     moat["moat"]
     component["component"]
@@ -22,7 +23,6 @@ flowchart LR
   end
   subgraph design["Strategy Design"]
     platform["platform"]
-    entity["entity"]
     motivation["motivation"]
     relationship["relationship"]
     transaction["transaction"]
@@ -124,6 +124,26 @@ An experience that already happens in the ecosystem — a step of an arena, plac
 | `entities` | → entity (many) | The entities that take part |
 | `job-step` | define · locate · prepare · confirm · execute · monitor · modify · conclude | Where it sits in the universal job map |
 
+### `entity` (E2)
+
+An entity-role: a cluster of similar ecosystem actors, with its platform role and its portrait.
+
+| Attribute | Kind | Meaning |
+| --------- | ---- | ------- |
+| `role` | owner · stakeholder · peer-consumer · peer-producer · partner | The platform role this entity-role plays |
+| `layer` | long-tail · aggregator · infrastructure | Where it sits on the Ecosystem Scan: long-tail niche, aggregator/mediator, or infrastructure |
+| `type` | text | What kind of entity it is: individuals, SMBs, institutions … |
+| `clusters` | list | The concrete entities clustered into this role (a GP and a nurse → healthcare professionals) |
+| `context` | list | Its environment, tools, constraints and daily reality |
+| `assets` | list | Potential: assets it owns and could leverage |
+| `capabilities` | list | Potential: capabilities it could leverage |
+| `potential` | list | Potential: how it could grow or evolve |
+| `goals` | list | Compressor: what it is trying to achieve right now |
+| `pressures` | list | Compressor: the performance pressures pushing it to improve |
+| `convenience-gains` | list | Gains sought: easier, faster, cheaper ways of doing things |
+| `reach-gains` | list | Gains sought: access and reach — its 'other half of the apple' |
+| `value-gains` | list | Gains sought: money, savings, recognition, knowledge, security … |
+
 ### `asset` (E3)
 
 An asset or capability of the shaping organisation that could ground an advantage.
@@ -207,26 +227,6 @@ The platform strategy: its narrative, owners, core entity and value propositions
 | `core-value` | text | The core value proposition for the core target |
 | `ancillary-values` | list | Secondary value propositions |
 | `infrastructure` | list | Infrastructures and core components the owners run |
-
-### `entity` (D1)
-
-An entity-role: a cluster of similar ecosystem actors, with its platform role and its portrait.
-
-| Attribute | Kind | Meaning |
-| --------- | ---- | ------- |
-| `role` | owner · stakeholder · peer-consumer · peer-producer · partner | The platform role this entity-role plays |
-| `layer` | long-tail · aggregator · infrastructure | Where it sits on the Ecosystem Scan: long-tail niche, aggregator/mediator, or infrastructure |
-| `type` | text | What kind of entity it is: individuals, SMBs, institutions … |
-| `clusters` | list | The concrete entities clustered into this role (a GP and a nurse → healthcare professionals) |
-| `context` | list | Its environment, tools, constraints and daily reality |
-| `assets` | list | Potential: assets it owns and could leverage |
-| `capabilities` | list | Potential: capabilities it could leverage |
-| `potential` | list | Potential: how it could grow or evolve |
-| `goals` | list | Compressor: what it is trying to achieve right now |
-| `pressures` | list | Compressor: the performance pressures pushing it to improve |
-| `convenience-gains` | list | Gains sought: easier, faster, cheaper ways of doing things |
-| `reach-gains` | list | Gains sought: access and reach — its 'other half of the apple' |
-| `value-gains` | list | Gains sought: money, savings, recognition, knowledge, security … |
 
 ### `motivation` (D3)
 

@@ -44,10 +44,34 @@ describe("pdt42", () => {
     const overview = pdt("--dir", dir, "guide").out;
     expect(overview).toContain("[ ] D5  Identify the elementary transactions and channels");
     expect(overview).toContain(":::transaction, :::channel");
+    expect(overview).toContain(":::job, :::entity with layer");
+    expect(overview).toContain(":::platform, :::entity + role, clusters");
     const d5 = pdt("--dir", dir, "guide", "step", "D5").out;
     expect(d5).toContain("Write this step in `2-design/d5-transactions.pdt42.md`");
     expect(d5).toContain(
-      "- `:::entity` from D1 — required via transaction.from, transaction.to; none yet ← write these first",
+      "- `:::entity` from E2 — required via transaction.from, transaction.to; none yet ← write these first",
+    );
+    expect(d5).toContain(
+      "- `:::entity`: referenced from here; its blocks live in their home chapter, `1-exploration/e2-scan.pdt42.md` (E2). If you discover a new entity here, add it there, not in this step's chapter.",
+    );
+    const d1 = pdt("--dir", dir, "guide", "step", "D1").out;
+    expect(d1).toContain(
+      "- `:::entity`: add role, clusters to the existing blocks in their home chapter, `1-exploration/e2-scan.pdt42.md` (E2). If you discover a new entity here, add it there, not in this step's chapter.",
+    );
+    expect(d1).toContain("### :::entity — add role, clusters, in 1-exploration/e2-scan.pdt42.md");
+    const template = d1.slice(d1.indexOf("## Starter template"));
+    expect(template).toContain(
+      "In 1-exploration/e2-scan.pdt42.md, an existing :::entity with what D1 adds:",
+    );
+    expect(template).not.toContain("pressures:");
+    const d2 = pdt("--dir", dir, "guide", "step", "D2").out;
+    expect(d2).toContain(
+      "- `:::entity`: add context, assets, capabilities, potential, goals, pressures, convenience-gains, reach-gains, value-gains to the existing blocks in their home chapter, `1-exploration/e2-scan.pdt42.md` (E2). If you discover a new entity here, add it there, not in this step's chapter.",
+    );
+    const e2 = pdt("--dir", dir, "guide", "step", "E2").out;
+    expect(e2).toContain("### :::entity — with layer");
+    expect(e2).toContain(
+      ":::entity\nid: e-farmers\ntitle: Small-scale farmers\nlayer: long-tail\n:::",
     );
     expect(d5).toContain("- `pdt42 explain transaction`");
     expect(d5).toContain("## Starter template");
@@ -66,7 +90,11 @@ describe("pdt42", () => {
   });
 
   test("explain, roles, canvas and rules render; json is parseable", () => {
-    expect(pdt("explain", "entity").out).toContain("| `reach-gains` |");
+    const entity = pdt("explain", "entity").out;
+    expect(entity).toContain("| `reach-gains` |");
+    expect(entity).toContain(
+      "Home: step E2 Scan the ecosystem (`pdt42 guide step E2`), chapter `1-exploration/e2-scan.pdt42.md`. Every :::entity is written there, also one discovered in a later step. Later steps fill it in there: D1 (role, clusters), D2 (portrait).",
+    );
     expect(pdt("guide", "roles").out).toContain("Peer producer** (PP");
     expect(pdt("guide", "canvas", "transactions-board").out).toContain("`transaction.value-unit`");
     expect(JSON.parse(pdt("rules", "--format", "json").out).length).toBeGreaterThan(30);
