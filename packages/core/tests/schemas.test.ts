@@ -55,6 +55,16 @@ describe("schemas", () => {
     }
   });
 
+  test("every block type has exactly one home step, the one its meta names", () => {
+    for (const type of BLOCK_TYPES) {
+      expect(
+        STEPS.filter((s) => s.blocks.includes(type)).map((s) => s.id),
+        type,
+      ).toEqual([blockMeta(type).step]);
+    }
+    expect(blockMeta("entity").step).toBe("E2");
+  });
+
   test("every reference field targets known block types", () => {
     for (const ref of crossReferences())
       for (const t of ref.to) expect(BLOCK_TYPES, `${ref.from}.${ref.field}`).toContain(t);

@@ -1,4 +1,11 @@
-import { canvasById, STEPS, stepById, type StepInfo } from "./methodology.ts";
+import {
+  canvasById,
+  enrichesElsewhere,
+  homeStep,
+  STEPS,
+  stepById,
+  type StepInfo,
+} from "./methodology.ts";
 import { blockFields, blockMeta, type BlockType } from "./schemas.ts";
 
 // What `pdt42 guide step <id>` hands to an author: the step's dependencies, derived from the
@@ -9,7 +16,7 @@ import { blockFields, blockMeta, type BlockType } from "./schemas.ts";
 export interface StepDependency {
   /** The block type this step's blocks reference. */
   type: BlockType;
-  /** The step that introduces that type. */
+  /** The type's home step: the step that creates it, whose chapter holds its blocks. */
   step: string;
   /** The referencing fields, as `type.field`. */
   via: string[];
@@ -28,7 +35,7 @@ export function stepDependencies(step: StepInfo): StepDependency[] {
         if (step.blocks.includes(target)) continue;
         const dep = deps.get(target) ?? {
           type: target,
-          step: blockMeta(target).step,
+          step: homeStep(target).id,
           via: [],
           required: false,
         };
@@ -44,10 +51,49 @@ export function stepDependencies(step: StepInfo): StepDependency[] {
   );
 }
 
-function exampleSection(type: BlockType): string {
+/**
+ * The type's example as a section. With `fields`, only those attributes (and id, title) stay:
+ * what one step writes — E2 an entity's layer, D1 its role and clusters.
+ */
+function exampleSection(type: BlockType, fields?: string[]): string {
   const meta = blockMeta(type);
   const title = /(?:^|\n)title: (.*)/.exec(meta.example)?.[1] ?? type;
-  return `## ${title}\n\nOne or two sentences on why this element matters.\n\n\`\`\`pdt42\n:::${type}\n${meta.example}\n:::\n\`\`\`\n`;
+  let keep = true;
+  const example = fields
+    ? meta.example
+        .split("\n")
+        .filter((line) => {
+          if (!line.startsWith(" "))
+            keep = ["id", "title", ...fields].includes(line.split(":")[0]!);
+          return keep;
+        })
+        .join("\n")
+    : meta.example;
+  return `## ${title}\n\nOne or two sentences on why this element matters.\n\n\`\`\`pdt42\n:::${type}\n${example}\n:::\n\`\`\`\n`;
+}
+
+/** The fields a step fills on one of its own types, if it names them (E2: an entity's layer). */
+const ownFields = (step: StepInfo, type: BlockType) =>
+  step.enriches?.find((e) => e.type === type)?.fields;
+
+/**
+ * For each type a step fills in but does not create: where its blocks live, and that a new one
+ * found in this step is written there too.
+ */
+function homeNotes(step: StepInfo): { lines: string[]; examples: string } {
+  const elsewhere = enrichesElsewhere(step);
+  const lines = elsewhere.map(({ type, fields }) => {
+    const home = homeStep(type);
+    const here = home.file === step.file ? "" : ", not in this chapter";
+    return `Add ${fields.join(", ")} to the existing :::${type} blocks in their home chapter, ${home.file} (${home.id}). A new ${type} you find in this step is written there too${here}.`;
+  });
+  const examples = elsewhere
+    .map(
+      ({ type, fields }) =>
+        `In ${homeStep(type).file}, an existing :::${type} with what ${step.id} adds:\n\n${exampleSection(type, fields)}`,
+    )
+    .join("\n");
+  return { lines, examples };
 }
 
 /** The `:::canvas` block a step's chapter shows, as template text. */
@@ -73,18 +119,19 @@ export function starterTemplate(stepId: string): string {
     ...step.how.map((h) => `- ${h}`),
   ];
 
+  const home = homeNotes(step);
   if (!step.blocks.length) {
     // Enrich-only steps (D2 portraits, E4 focus) add fields to blocks written earlier.
-    const lines = (step.enriches ?? []).map(
-      ({ type, fields }) => `Add to the existing :::${type} blocks: ${fields.join(", ")}.`,
-    );
-    const examples = (step.enriches ?? []).map(({ type }) => exampleSection(type)).join("\n");
     const canvas = canvasSnippet(step);
-    return `<!--\n${[...guidance, "", ...lines].join("\n")}\n\nExample:\n\n${examples}${canvas ? `\n${canvas}` : ""}-->\n`;
+    return `<!--\n${[...guidance, "", ...home.lines].join("\n")}\n\nExample:\n\n${home.examples}${canvas ? `\n${canvas}` : ""}-->\n`;
   }
 
   const heading = firstInFile ? `# ${step.title}\n\n` : "";
-  const examples = step.blocks.map(exampleSection).join("\n");
+  const examples = step.blocks
+    .map((type) => exampleSection(type, ownFields(step, type)))
+    .join("\n");
   const canvas = canvasSnippet(step);
-  return `${heading}<!--\n${guidance.join("\n")}\n\n${canvas ? `${canvas}\n` : ""}One section per element: a heading, prose, then the block. Examples:\n\n${examples}-->\n`;
+  const notes = home.lines.length ? `\n\n${home.lines.join("\n")}` : "";
+  const enriched = home.examples ? `\n${home.examples}` : "";
+  return `${heading}<!--\n${guidance.join("\n")}${notes}\n\n${canvas ? `${canvas}\n` : ""}One section per element: a heading, prose, then the block. Examples:\n\n${examples}${enriched}-->\n`;
 }

@@ -70,7 +70,7 @@ describe("step guidance", () => {
 
   test("dependencies point to earlier steps for required references", () => {
     const d5 = stepDependencies(stepById("D5")!);
-    expect(d5.find((d) => d.type === "entity")).toMatchObject({ step: "D1", required: true });
+    expect(d5.find((d) => d.type === "entity")).toMatchObject({ step: "E2", required: true });
     expect(d5.find((d) => d.type === "relationship")).toMatchObject({
       step: "D4",
       required: false,

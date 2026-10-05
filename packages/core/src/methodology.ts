@@ -47,9 +47,12 @@ export interface StepInfo {
   canvases: string[];
   /** The canvas its chapter must show (rule W011), if the step has one. */
   canvas?: string;
-  /** Block types this step creates. */
+  /**
+   * Block types this step creates: it is their home step, and its chapter is where every block
+   * of these types is written — also one found in a later step.
+   */
   blocks: BlockType[];
-  /** Block types this step fills in further (e.g. portraits on entities). */
+  /** Fields this step fills in: on its own blocks, or on blocks of earlier steps, in their home chapter. */
   enriches?: { type: BlockType; fields: string[] }[];
   how: string[];
   outcome: string;
@@ -88,11 +91,11 @@ export const STEPS: StepInfo[] = [
     question: "Which experiences already happen, among which entities, on which market layer?",
     canvases: ["ecosystem-scan"],
     canvas: "ecosystem-scan",
-    blocks: ["job"],
+    blocks: ["job", "entity"],
     enriches: [{ type: "entity", fields: ["layer"] }],
     how: [
       "Enumerate the most frequent or valuable experiences (steps) as `job` blocks, each in its arena.",
-      "Add the entities that take part and place each on a layer: long tail (niche producers and consumers), aggregator (brokers, trusted advisors) or infrastructure (commodities, building blocks).",
+      "Add the entities that take part as `entity` blocks and place each on a layer: long tail (niche producers and consumers), aggregator (brokers, trusted advisors) or infrastructure (commodities, building blocks).",
       "Validate the picture with real entities or a domain expert before trusting it.",
     ],
     outcome:
@@ -195,10 +198,10 @@ export const STEPS: StepInfo[] = [
     question: "Who is in the ecosystem, clustered into which roles?",
     canvases: ["ecosystem"],
     canvas: "ecosystem",
-    blocks: ["platform", "entity"],
+    blocks: ["platform"],
     enriches: [{ type: "entity", fields: ["role", "clusters"] }],
     how: [
-      "Brainstorm entities alone first, then together; cluster similar ones into entity-roles (`clusters:`).",
+      "Brainstorm entities alone first, then together; cluster similar ones into entity-roles (`clusters:`). The entity blocks live in the Ecosystem Scan's chapter (E2): add the ones you find here there, even when you skipped exploration.",
       "Give each a `role`: owner, stakeholder, peer-consumer, peer-producer or partner — by the key value it produces or consumes.",
       "Keep at most five roles in the peer spectrum.",
       "Add the `platform` block with its owners.",
@@ -439,6 +442,19 @@ export const STEPS: StepInfo[] = [
 
 export function stepById(id: string): StepInfo | undefined {
   return STEPS.find((s) => s.id.toLowerCase() === id.toLowerCase());
+}
+
+/**
+ * A block type's home step: the step that creates it. Its chapter is the one place where blocks
+ * of the type are written, also those found in a later step.
+ */
+export function homeStep(type: BlockType): StepInfo {
+  return STEPS.find((s) => s.blocks.includes(type))!;
+}
+
+/** What a step fills in on blocks whose home is an earlier step (D1: roles on entities). */
+export function enrichesElsewhere(step: StepInfo): { type: BlockType; fields: string[] }[] {
+  return (step.enriches ?? []).filter((e) => !step.blocks.includes(e.type));
 }
 
 // ---------------------------------------------------------------------------

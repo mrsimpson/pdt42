@@ -24,6 +24,10 @@ invent them. When something is unknown, ask.
    heading. Start each id with its kind's prefix (`e-farmers`, `t-preorder`; `pdt42 explain <type>`
    names it). Mention other elements in prose by their id (`` `x-weekly-box` ``): the browser
    links it.
+   Every block type has one home chapter, the chapter of the step that creates it
+   (`pdt42 explain <type>` names it). A later step fills blocks in there or references them; an
+   element you discover in a later step (a new entity in D1 or D5) is still written in its home
+   chapter — entities live in E2's chapter, also when the design starts at D1.
    Place the step's canvas in its chapter with a `:::canvas` block (`id`, `canvas`, and `of` for
    canvases drawn per element) — `pdt42 guide step <id>` shows the snippet. The canvas is drawn
    from the model; never describe its content by hand.

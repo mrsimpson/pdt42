@@ -19,14 +19,13 @@ const hasValues = (value: unknown) =>
   Array.isArray(value) ? value.length > 0 : value !== undefined && value !== "";
 
 function countFor(ws: Workspace, step: StepInfo): number {
-  const created = step.blocks.reduce((n, kind) => n + elementsOf(ws, kind).length, 0);
-  const enriched = (step.enriches ?? []).reduce(
-    (n, { type, fields }) =>
-      n +
-      elementsOf(ws, type).filter((e) => fields.some((f) => hasValues(fieldValue(e, f)))).length,
-    0,
-  );
-  return step.blocks.length ? created : enriched;
+  // The elements the step created, and those it filled in (D1 roles, D2 portraits, E4 focus) —
+  // each once: E2 both creates entities and gives them their layer.
+  const counted = new Set(step.blocks.flatMap((kind) => elementsOf(ws, kind)));
+  for (const { type, fields } of step.enriches ?? [])
+    for (const e of elementsOf(ws, type))
+      if (fields.some((f) => hasValues(fieldValue(e, f)))) counted.add(e);
+  return counted.size;
 }
 
 export function progress(ws: Workspace, diagnostics: Diagnostic[]): StepStatus[] {

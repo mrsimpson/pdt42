@@ -14,6 +14,8 @@ import {
   stepById,
   TACTIC_LABELS,
   nextStep,
+  enrichesElsewhere,
+  homeStep,
   starterTemplate,
   stepDependencies,
   isBlockType,
@@ -37,7 +39,10 @@ const VALUE_LABELS: Record<string, Record<string, string>> = {
 };
 
 function stepTypes(step: StepInfo): string {
-  const created = step.blocks.map((t) => `:::${t}`);
+  const created = step.blocks.map((t) => {
+    const fields = step.enriches?.find((e) => e.type === t)?.fields;
+    return `:::${t}${fields ? ` with ${fields.join(", ")}` : ""}`;
+  });
   const enriched = (step.enriches ?? [])
     .filter((e) => !step.blocks.includes(e.type))
     .map((e) => `:::${e.type} + ${e.fields.length > 2 ? "portrait fields" : e.fields.join(", ")}`);
@@ -48,7 +53,8 @@ export function guideOverview(steps: StepStatus[]): string {
   const lines = [
     "# The Platform Design Toolkit, step by step",
     "",
-    "Work through the steps in order; each one introduces a few block types.",
+    "Work through the steps in order; each one creates a few block types, in its own chapter —",
+    "their home: later steps fill them in there, and a new one found later is written there too.",
     "Legend: [x] done · [~] started, with open findings · [ ] not started",
     "",
   ];
@@ -111,6 +117,8 @@ export function guideStep(id: string, steps: StepStatus[], workspace: Workspace)
       `- \`:::${dep.type}\` from ${dep.step} — ${dep.required ? "required" : "optional"} via ${dep.via.join(", ")}; ${n ? `${n} in this workspace` : "none yet"}${dep.required && !n ? " ← write these first" : ""}`,
     );
   }
+  const homes = homeLines(step);
+  if (homes.length) lines.push("", "## Home chapters", "", ...homes);
   lines.push(
     "",
     "## How",
@@ -139,9 +147,14 @@ export function guideStep(id: string, steps: StepStatus[], workspace: Workspace)
     "",
   );
   for (const type of types) {
-    const enriched = step.enriches?.find((e) => e.type === type && !step.blocks.includes(type));
+    const fields = step.enriches?.find((e) => e.type === type)?.fields;
+    const note = !fields
+      ? ""
+      : step.blocks.includes(type)
+        ? ` — with ${fields.join(", ")}`
+        : ` — add ${fields.join(", ")}, in ${homeStep(type).file}`;
     lines.push(
-      `### :::${type}${enriched ? ` — add ${enriched.fields.join(", ")}` : ""}`,
+      `### :::${type}${note}`,
       "",
       blockMeta(type).description,
       "",
@@ -178,6 +191,49 @@ export function guideStep(id: string, steps: StepStatus[], workspace: Workspace)
     "````",
   );
   return lines.join("\n");
+}
+
+/**
+ * Where the blocks this step fills in or references live: their home chapter, also for a new one
+ * found in this step.
+ */
+function homeLines(step: StepInfo): string[] {
+  const filled = enrichesElsewhere(step);
+  const referenced = stepDependencies(step)
+    .map((d) => d.type)
+    .filter((t) => !filled.some((e) => e.type === t));
+  const where = (type: BlockType) => {
+    const home = homeStep(type);
+    return `their home chapter, \`${home.file}\` (${home.id})`;
+  };
+  const elsewhere = (type: BlockType) => homeStep(type).file !== step.file;
+  return [
+    ...filled.map(
+      ({ type, fields }) =>
+        `- \`:::${type}\`: add ${fields.join(", ")} to the existing blocks in ${where(type)}. If you discover a new ${type} here, add it there${elsewhere(type) ? ", not in this step's chapter" : ""}.`,
+    ),
+    ...referenced.map((type) =>
+      blockMeta(type).singleton
+        ? `- \`:::${type}\`: referenced from here; it is written in its home chapter, \`${homeStep(type).file}\` (${homeStep(type).id}), not in this step's chapter.`
+        : `- \`:::${type}\`: referenced from here; its blocks live in ${where(type)}. If you discover a new ${type} here, add it there, not in this step's chapter.`,
+    ),
+  ];
+}
+
+/** A type's home step and chapter, and the steps that fill it in later. */
+function homeText(kind: BlockType): string {
+  const home = homeStep(kind);
+  const later = STEPS.filter((s) => s !== home)
+    .flatMap((s) => {
+      const fields = s.enriches?.find((e) => e.type === kind)?.fields;
+      return fields ? [`${s.id} (${fields.length > 2 ? "portrait" : fields.join(", ")})`] : [];
+    })
+    .join(", ");
+  return [
+    `Home: step ${home.id} ${home.title} (\`pdt42 guide step ${home.id}\`), chapter \`${home.file}\`.`,
+    ` Every :::${kind} is written there, also one discovered in a later step.`,
+    later ? ` Later steps fill it in there: ${later}.` : "",
+  ].join("");
 }
 
 export function guideRoles(): string {
@@ -259,6 +315,7 @@ export function explainJson(type: string) {
   return {
     blockType: kind,
     step: meta.step,
+    chapter: homeStep(kind).file,
     ...blockGuidance(BLOCK_SCHEMAS[kind], kind),
     attributes: blockFields(kind),
     example: meta.example,
@@ -303,7 +360,7 @@ export function explainText(type: string | undefined): string {
     "",
     meta.description,
     "",
-    `Introduced in step ${meta.step} (\`pdt42 guide step ${meta.step}\`).${meta.singleton ? " At most one per workspace." : ""}`,
+    `${homeText(kind)}${meta.singleton ? " At most one per workspace." : ""}`,
     "",
     ...(scheme
       ? [

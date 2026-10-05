@@ -11,25 +11,35 @@
   {
     "kind": "run",
     "command": "pdt42 guide step D1",
-    "output": "# D1 · Map the ecosystem\n\nPhase: Strategy Design · Status: todo\n\n> Who is in the ecosystem, clustered into which roles?\n\n## File\n\nWrite this step in `2-design/d1-ecosystem.pdt42.md` (any `*.pdt42.md` file works; this is the convention). Wrap blocks in ```pdt42 fences.\n\n## Dependencies\n\n- `:::ecosystem` from E1 — optional via platform.ecosystem; none yet\n- `:::brief` from E7 — optional via platform.brief; none yet\n\n## How\n\n1. Brainstorm entities alone first, then together; cluster similar ones into entity-roles (`clusters:`).\n2. Give each a `role`: owner, stakeholder, peer-consumer, peer-producer or partner — by the key value it produces or consumes.\n3. Keep at most five roles in the peer spectrum.\n4. Add the `platform` block with its owners.\n\n…"
+    "output": "# D1 · Map the ecosystem\n\nPhase: Strategy Design · Status: todo\n\n> Who is in the ecosystem, clustered into which roles?\n\n## File\n\nWrite this step in `2-design/d1-ecosystem.pdt42.md` (any `*.pdt42.md` file works; this is the convention). Wrap blocks in ```pdt42 fences.\n\n## Dependencies\n\n- `:::ecosystem` from E1 — optional via platform.ecosystem; none yet\n- `:::entity` from E2 — optional via platform.owners, platform.core-entity; none yet\n- `:::brief` from E7 — optional via platform.brief; none yet\n\n## Home chapters\n\n- `:::entity`: add role, clusters to the existing blocks in their home chapter, `1-exploration/e2-scan.pdt42.md` (E2). If you discover a new entity here, add it there, not in this step's chapter.\n- `:::ecosystem`: referenced from here; it is written in its home chapter, `1-exploration/e1-arenas.pdt42.md` (E1), not in this step's chapter.\n- `:::brief`: referenced from here; it is written in its home chapter, `1-exploration/e7-brief.pdt42.md` (E7), not in this step's chapter.\n\n## How\n\n1. Brainstorm entities alone first, then together; cluster similar ones into entity-roles (`clusters:`). The entity blocks live in the Ecosystem Scan's chapter (E2): add the ones you find here there, even when you skipped exploration.\n2. Give each a `role`: owner, stakeholder, peer-consumer, peer-producer or partner — by the key value it produces or consumes.\n…"
   },
   {
     "kind": "agent",
-    "text": "Asks who takes part, then writes the chapter: the platform, its owner and two entity-roles."
+    "text": "Asks who takes part. Writes the owner and two entity-roles in their home chapter, the Ecosystem Scan, and the platform in D1."
+  },
+  {
+    "kind": "write",
+    "file": "1-exploration/e2-scan.pdt42.md",
+    "excerpt": "## Small-scale farmers\n\nFamily farms within sixty kilometres. They grow well; selling is what costs them.\n\n```pdt42\n:::entity\nid: e-farmers\ntitle: Small-scale farmers\nrole: peer-producer\n:::\n```"
   },
   {
     "kind": "write",
     "file": "2-design/d1-ecosystem.pdt42.md",
-    "excerpt": "## Small-scale farmers\n\nFamily farms within sixty kilometres. They grow well; selling is what costs them.\n\n```pdt42\n:::entity\nid: e-farmers\ntitle: Small-scale farmers\nrole: peer-producer\n:::\n```"
+    "excerpt": "## Harvest Commons\n\nA cooperative that lets small farms sell their harvest before it is sown.\n\n```pdt42\n:::platform\nid: platform-harvest\ntitle: Harvest Commons\nowners: e-coop\n:::\n```"
   },
   {
     "kind": "run",
     "command": "pdt42 validate",
-    "output": "W011 2-design/d1-ecosystem.pdt42.md:8  2-design/d1-ecosystem.pdt42.md (D1 Map the ecosystem) shows no Ecosystem Canvas — add a `:::canvas` block with `canvas: ecosystem`\nH010 2-design/d1-ecosystem.pdt42.md:32  Small-scale farmers is connected to nothing else in the model\nH104 2-design/d1-ecosystem.pdt42.md:32  Small-scale farmers's portrait lacks potential, goals or pressures, gains\nH010 2-design/d1-ecosystem.pdt42.md:44  Restaurants is connected to nothing else in the model\nH104 2-design/d1-ecosystem.pdt42.md:44  Restaurants's portrait lacks potential, goals or pressures, gains\n\n4 elements in 1 files — 0 errors, 1 warnings, 4 hints"
+    "output": "W011 1-exploration/e2-scan.pdt42.md:8  1-exploration/e2-scan.pdt42.md (E2 Scan the ecosystem) shows no Ecosystem Scan — add a `:::canvas` block with `canvas: ecosystem-scan`\nW011 2-design/d1-ecosystem.pdt42.md:8  2-design/d1-ecosystem.pdt42.md (D1 Map the ecosystem) shows no Ecosystem Canvas — add a `:::canvas` block with `canvas: ecosystem`\nH010 1-exploration/e2-scan.pdt42.md:20  Small-scale farmers is connected to nothing else in the model\nH104 1-exploration/e2-scan.pdt42.md:20  Small-scale farmers's portrait lacks potential, goals or pressures, gains\nH010 1-exploration/e2-scan.pdt42.md:32  Restaurants is connected to nothing else in the model\nH104 1-exploration/e2-scan.pdt42.md:32  Restaurants's portrait lacks potential, goals or pressures, gains\n\n4 elements in 2 files — 0 errors, 2 warnings, 4 hints"
   },
   {
     "kind": "agent",
-    "text": "W011: the chapter lacks its canvas. Places it under the title."
+    "text": "W011: both chapters lack their canvas. Places each under its title."
+  },
+  {
+    "kind": "write",
+    "file": "1-exploration/e2-scan.pdt42.md",
+    "excerpt": "# Scan the ecosystem\n\n```pdt42\n:::canvas\nid: cv-ecosystem-scan\ncanvas: ecosystem-scan\n:::\n```"
   },
   {
     "kind": "write",
@@ -39,7 +49,7 @@
   {
     "kind": "run",
     "command": "pdt42 validate",
-    "output": "H010 2-design/d1-ecosystem.pdt42.md:39  Small-scale farmers is connected to nothing else in the model\nH104 2-design/d1-ecosystem.pdt42.md:39  Small-scale farmers's portrait lacks potential, goals or pressures, gains\nH010 2-design/d1-ecosystem.pdt42.md:51  Restaurants is connected to nothing else in the model\nH104 2-design/d1-ecosystem.pdt42.md:51  Restaurants's portrait lacks potential, goals or pressures, gains\n\n4 elements in 1 files — 0 errors, 0 warnings, 4 hints"
+    "output": "H010 1-exploration/e2-scan.pdt42.md:27  Small-scale farmers is connected to nothing else in the model\nH104 1-exploration/e2-scan.pdt42.md:27  Small-scale farmers's portrait lacks potential, goals or pressures, gains\nH010 1-exploration/e2-scan.pdt42.md:39  Restaurants is connected to nothing else in the model\nH104 1-exploration/e2-scan.pdt42.md:39  Restaurants's portrait lacks potential, goals or pressures, gains\n\n4 elements in 2 files — 0 errors, 0 warnings, 4 hints"
   },
   {
     "kind": "run",

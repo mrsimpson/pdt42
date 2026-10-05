@@ -19,11 +19,13 @@ export type SessionEntry =
   | { kind: "write"; file: string; excerpt: string };
 
 const CLI = new URL("../src/cli.ts", import.meta.url).pathname;
-const FILE = "2-design/d1-ecosystem.pdt42.md";
+const SCAN = "1-exploration/e2-scan.pdt42.md";
+const MAP = "2-design/d1-ecosystem.pdt42.md";
 
 const block = (body: string) => `\`\`\`pdt42\n${body}\n\`\`\``;
 
 const CANVAS = block(":::canvas\nid: cv-ecosystem\ncanvas: ecosystem\n:::");
+const SCAN_CANVAS = block(":::canvas\nid: cv-ecosystem-scan\ncanvas: ecosystem-scan\n:::");
 
 const ENTITIES = [
   [
@@ -55,16 +57,19 @@ A cooperative that lets small farms sell their harvest before it is sown.
 
 ${block(":::platform\nid: platform-harvest\ntitle: Harvest Commons\nowners: e-coop\n:::")}`;
 
-const chapter = (canvas: boolean) =>
-  ["# Map the ecosystem", ...(canvas ? [CANVAS] : []), PLATFORM, ...ENTITIES.map(entity)].join(
-    "\n\n",
-  ) + "\n";
+// Entities have one home chapter, the Ecosystem Scan (E2), also when the design starts at D1.
+const scan = (canvas: boolean) =>
+  ["# Scan the ecosystem", ...(canvas ? [SCAN_CANVAS] : []), ...ENTITIES.map(entity)].join("\n\n") +
+  "\n";
+
+const map = (canvas: boolean) =>
+  ["# Map the ecosystem", ...(canvas ? [CANVAS] : []), PLATFORM].join("\n\n") + "\n";
 
 type Step =
   | { kind: "human"; text: string }
   | { kind: "agent"; text: string }
   | { kind: "run"; args: string[]; lines?: number }
-  | { kind: "write"; content: string; excerpt: string };
+  | { kind: "write"; file: string; content: string; excerpt: string };
 
 const SCRIPT: Step[] = [
   {
@@ -72,15 +77,22 @@ const SCRIPT: Step[] = [
     text: "Let's design a platform that connects small farms with the city's kitchens. Use pdt42.",
   },
   { kind: "run", args: ["next"] },
-  { kind: "run", args: ["guide", "step", "D1"], lines: 22 },
+  { kind: "run", args: ["guide", "step", "D1"], lines: 26 },
   {
     kind: "agent",
-    text: "Asks who takes part, then writes the chapter: the platform, its owner and two entity-roles.",
+    text: "Asks who takes part. Writes the owner and two entity-roles in their home chapter, the Ecosystem Scan, and the platform in D1.",
   },
-  { kind: "write", content: chapter(false), excerpt: entity(ENTITIES[1]) },
+  { kind: "write", file: SCAN, content: scan(false), excerpt: entity(ENTITIES[1]) },
+  { kind: "write", file: MAP, content: map(false), excerpt: PLATFORM },
   { kind: "run", args: ["validate"] },
-  { kind: "agent", text: "W011: the chapter lacks its canvas. Places it under the title." },
-  { kind: "write", content: chapter(true), excerpt: `# Map the ecosystem\n\n${CANVAS}` },
+  { kind: "agent", text: "W011: both chapters lack their canvas. Places each under its title." },
+  {
+    kind: "write",
+    file: SCAN,
+    content: scan(true),
+    excerpt: `# Scan the ecosystem\n\n${SCAN_CANVAS}`,
+  },
+  { kind: "write", file: MAP, content: map(true), excerpt: `# Map the ecosystem\n\n${CANVAS}` },
   { kind: "run", args: ["validate"] },
   { kind: "run", args: ["next"] },
 ];
@@ -92,9 +104,9 @@ export function recordSession(): SessionEntry[] {
     return SCRIPT.map((step): SessionEntry => {
       if (step.kind === "human" || step.kind === "agent") return step;
       if (step.kind === "write") {
-        mkdirSync(dirname(join(dir, FILE)), { recursive: true });
-        writeFileSync(join(dir, FILE), step.content);
-        return { kind: "write", file: FILE, excerpt: step.excerpt };
+        mkdirSync(dirname(join(dir, step.file)), { recursive: true });
+        writeFileSync(join(dir, step.file), step.content);
+        return { kind: "write", file: step.file, excerpt: step.excerpt };
       }
       const r = spawnSync(
         process.execPath,
