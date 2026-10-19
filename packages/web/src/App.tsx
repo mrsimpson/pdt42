@@ -14,7 +14,9 @@ import {
   HistoryChain,
   HistoryEntryView,
   WebViewProvider,
+  blockAnchor,
   useHistory,
+  useScrollToBlock,
   useSnapshot,
   useTheme,
   useVersion,
@@ -32,7 +34,7 @@ import { WorkspaceIndex } from "./workspace.ts";
 // The routes of every *42 web view (@cli42/lib/web):
 //
 //   #2-design/d5-transactions.pdt42.md                     chapter
-//   #2-design/d5-transactions.pdt42.md:el-t-share-menus    chapter + element (model box opens)
+//   #2-design/d5-transactions.pdt42.md:el-t-share-menus    chapter + element (its prose scrolls into view)
 //   #2-design/d5-transactions.pdt42.md:cv-board-restaurant chapter + canvas or heading
 //   #changes                                               the visualized difference
 //   #history[:<commit|worktree>[:message]]                 the history, one pearl selected
@@ -53,8 +55,10 @@ export function applyRoute(state: ViewState, ix: WorkspaceIndex, route: Route): 
   const doc = (path && ix.document(path)) || ix.payload.documents[0];
   const changed = doc?.filePath !== state.file;
   state.file = doc?.filePath ?? "";
-  if (route.element) state.expanded.add(route.element);
-  state.scrollTo = route.anchor ?? (changed ? "top" : null);
+  // Each chapter starts with its prose: what was opened in another chapter does not follow.
+  if (changed) state.expanded = new Set();
+  // An element's block is brought into view by `useScrollToBlock`, prose first, never opened.
+  state.scrollTo = route.element ? null : (route.anchor ?? (changed ? "top" : null));
 }
 
 function initialState(ix: WorkspaceIndex): ViewState {
@@ -251,6 +255,13 @@ export function App({ initial, diff, diffError, history, refresh, version }: App
       }
     }
   }, [state]);
+
+  // An element's route brings its block into view, and marks it.
+  useScrollToBlock(route.view === "document" ? route.element : null, state.file, () => {
+    if (route.view === "document" && route.element) {
+      document.getElementById(blockAnchor(route.element))?.classList.add("flash");
+    }
+  });
 
   // The changes: #changes, and the landing page whenever a difference is shown.
   const hasDiff = diff !== null || diffError !== null;

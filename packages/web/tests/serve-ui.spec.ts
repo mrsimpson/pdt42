@@ -70,7 +70,7 @@ test.afterAll(() => {
   rmSync(repo, { recursive: true, force: true });
 });
 
-test("an id mentioned in prose links to its element and opens its model box", async ({ page }) => {
+test("an id mentioned in prose links to its element and scrolls to its prose", async ({ page }) => {
   await page.goto(`${url}#2-design/d5-transactions.pdt42.md`);
   const mention = page.locator("main a[data-id='x-weekly-box']").first();
   await expect(mention).toBeVisible();
@@ -79,7 +79,49 @@ test("an id mentioned in prose links to its element and opens its model box", as
     "#2-design/d7-experiences.pdt42.md:el-x-weekly-box",
   );
   await mention.click();
-  await expect(page.locator("section.card#el-x-weekly-box")).toBeVisible();
+  // The prose of the element is at the top of the view, its model box stays closed
+  await expect(page.locator("div.run#el-x-weekly-box")).toBeVisible();
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () => document.getElementById("el-x-weekly-box")?.getBoundingClientRect().top ?? 1e6,
+        ),
+      { timeout: 8000 },
+    )
+    .toBeLessThan(24);
+  await expect(page.locator("section.card#el-x-weekly-box")).toHaveCount(0);
+});
+
+test("what was opened in a chapter is closed when another chapter is navigated to", async ({
+  page,
+}) => {
+  await page.goto(`${url}#2-design/d5-transactions.pdt42.md`);
+  await page.locator("button.run__stripe").first().click();
+  await expect(page.locator("section.card")).toHaveCount(1);
+
+  await page.goto(`${url}#2-design/d7-experiences.pdt42.md`);
+  await expect(page.locator("button.run__stripe").first()).toBeVisible();
+  await expect(page.locator("section.card")).toHaveCount(0);
+
+  await page.goto(`${url}#2-design/d5-transactions.pdt42.md`);
+  await expect(page.locator("button.run__stripe").first()).toBeVisible();
+  await expect(page.locator("section.card")).toHaveCount(0);
+});
+
+test("still reaches an element's prose when the page is zoomed in", async ({ page }) => {
+  // 200 % zoom of a 1280 px window: text wraps more, the page reflows after the scroll
+  await page.setViewportSize({ width: 640, height: 400 });
+  await page.goto(`${url}#2-design/d7-experiences.pdt42.md:el-x-weekly-box`);
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () => document.getElementById("el-x-weekly-box")?.getBoundingClientRect().top ?? 1e6,
+        ),
+      { timeout: 8000 },
+    )
+    .toBeLessThan(24);
 });
 
 test("the change opens on the changes view and shows inline in its chapter", async ({ page }) => {

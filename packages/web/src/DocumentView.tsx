@@ -259,9 +259,7 @@ export function DocumentView({ ctx }: { ctx: Ctx }) {
   const agent = ctx.state.mode === "agent";
   const diff = ctx.diffDocuments?.get(doc.filePath);
   if (diff) {
-    return (
-      <ChapterDiff diff={diff} document={doc} viewMode={ctx.state.mode} targetElementId={null} />
-    );
+    return <ChapterDiff diff={diff} document={doc} viewMode={ctx.state.mode} />;
   }
 
   return (
