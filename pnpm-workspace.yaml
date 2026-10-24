@@ -9,12 +9,12 @@ catalog:
   "@semantic-release/github": 12.0.10
   "@semantic-release/npm": 13.2.0
   "@types/node": ^24.13.3
-  "@types/react": ^18.3.31
-  "@types/react-dom": ^18.3.7
+  "@types/react": ^19.0.0
+  "@types/react-dom": ^19.0.0
   "@vitejs/plugin-react": ^6.1.1
   marked: ^14.1.4
-  react: ^18.3.1
-  react-dom: ^18.3.1
+  react: ^19.0.0
+  react-dom: ^19.0.0
   semantic-release: 25.0.9
   typescript: ^5
   vite: npm:@voidzero-dev/vite-plus-core@latest
